@@ -16,7 +16,6 @@ and open the template in the editor.
     -fx-default-button: #7f878f ;
     -fx-focus-color: #FF6600;
     -fx-faint-focus-color: #efefef22;
-    
 
 }
 
@@ -38,6 +37,9 @@ and open the template in the editor.
     -fx-accent: #FFE3D0 ;
 }
 
+.toolbar{
+     -fx-base: #000000;
+}
 
 
 

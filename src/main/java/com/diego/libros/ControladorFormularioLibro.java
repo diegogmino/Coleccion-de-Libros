@@ -7,6 +7,9 @@ package com.diego.libros;
 
 
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.Date;
@@ -42,6 +45,7 @@ import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
+import javax.imageio.ImageIO;
 
 /**
  *
@@ -87,8 +91,8 @@ public class ControladorFormularioLibro implements Initializable {
     
     @FXML
     Spinner spinner;
-    
-    ObservableList<String> generos = FXCollections.observableArrayList("Terror", "Realista", "Policíaco", "Infantil", "Fantasía", "Drama", "Distópico", "Ciencia ficción", "Aventuras");
+    // Géneros ordenados alfabéticamente de forma inversa para que aparezcan en orden en el spinner
+    ObservableList<String> generos = FXCollections.observableArrayList("Terror", "Realista", "Policíaco", "Infantil", "Filosofía", "Fantasía", "Drama", "Distópico", "Ciencia ficción", "Aventuras");
     SpinnerValueFactory<String> factoria = new SpinnerValueFactory.ListSpinnerValueFactory<String>(generos);
     
     @FXML
@@ -97,11 +101,14 @@ public class ControladorFormularioLibro implements Initializable {
     LibroDao libroDao;
     
     int id = 0;
+    // Fecha predeterminada que se le pone a un libro si no se le ha especificado una concreta
     LocalDate date = LocalDate.parse("1900-01-01");
+    // Variables que se usarán para comprobar si los campos están cubiertos
+    boolean isbnEs = false, tituloEs = false, autorEs = false, paginasEs = false, sinopsisEs = false, portadaEs = false;
     
     
    public void guardar(){
-       
+         // Método que guarda la información introducida en los campos
          Libro libro = new Libro();
          libro.setId(id);
          libro.setIsbn(Long.parseLong(isbn.getText()));
@@ -138,11 +145,20 @@ public class ControladorFormularioLibro implements Initializable {
         
         editar.setDisable(true);
         eliminar.setDisable(true);
+        guardar.setDisable(true);
+        
+        // Poner todos los campos como vacios de nuevo
+       isbnEs = false;
+       tituloEs = false;
+       autorEs = false;
+       paginasEs = false;
+       sinopsisEs = false;
+       portadaEs = false;
 
    } 
    
    public void editar() {
-       
+       // Método que habilita la posibilidad de editar los elementos cargados en visualizar()
        isbn.setDisable(false);
        titulo.setDisable(false);
        autor.setDisable(false);
@@ -158,15 +174,22 @@ public class ControladorFormularioLibro implements Initializable {
        }
        
        portada.setDisable(false);
+       guardar.setDisable(false);   
+       editar.setDisable(true);
        
-       guardar.setDisable(false);
+       // Poner todos los campos como rellenados
+       isbnEs = true;
+       tituloEs = true;
+       autorEs = true;
+       paginasEs = true;
+       sinopsisEs = true;
+       portadaEs = true;
        
-        editar.setDisable(true);
        
    }
    
    public void cancelar() {
-       
+       // Método que limpia todos los campos sin realizar cambios en la base de datos
        isbn.setDisable(false);
        titulo.setDisable(false);
        autor.setDisable(false);
@@ -190,14 +213,21 @@ public class ControladorFormularioLibro implements Initializable {
        
        id = 0;
        
-       guardar.setDisable(false);
+        // Poner todos los campos como vacios de nuevo
+       isbnEs = false;
+       tituloEs = false;
+       autorEs = false;
+       paginasEs = false;
+       sinopsisEs = false;
+       portadaEs = false;
        
+       guardar.setDisable(true); 
        editar.setDisable(true);
        eliminar.setDisable(true);
    }
    
    public void visualizar() {
-       
+       // Método que se activa al pulsar un elemento del TableView y lo carga
        Libro libro = tablaLibros.getSelectionModel().getSelectedItem();
        isbn.setText(libro.getIsbn()+"");
        isbn.setDisable(true);
@@ -226,9 +256,15 @@ public class ControladorFormularioLibro implements Initializable {
        fecha.setDisable(true);
        
        id =libro.getId();
+
+       Image img =  new Image("https://vignette.wikia.nocookie.net/fiver/images/b/b3/Portada_no_disponible.png/revision/latest?cb=20180818105945&path-prefix=es");
        
-       Image img = new  Image(portada.getText());
+       if (testImagen(portada.getText())) {
+            img = new  Image(portada.getText());
+       }
+       
        imagen.setImage(img);
+       
        
        guardar.setDisable(true);
        editar.setDisable(false);
@@ -236,20 +272,13 @@ public class ControladorFormularioLibro implements Initializable {
        
    }
    
-   public void activarDesactivarFecha() {
-       if (leido.isSelected()) {
-            fecha.setDisable(false);
-       } else {
-           fecha.setDisable(true);
-       }
-   }
-   
-   
    public void eliminar() {
-      
+      // Método para elminar un libro de la base de datos
        Libro libro = tablaLibros.getSelectionModel().getSelectedItem();
        libroDao.eliminar(libro);
        cargarLibrosDeLaBase();
+       
+       id = 0;
        
        isbn.clear();
        titulo.clear();
@@ -262,7 +291,7 @@ public class ControladorFormularioLibro implements Initializable {
        factoria.setValue("Aventuras");
        imagen.setImage(null);
        
-       guardar.setDisable(false);
+       guardar.setDisable(true);
        editar.setDisable(true);
        eliminar.setDisable(true);
        
@@ -278,6 +307,108 @@ public class ControladorFormularioLibro implements Initializable {
        
    }
    
+  public Boolean testImagen(String url) {  
+      // Método que comprueba si la url de una imagen es válida
+    try {  
+        BufferedImage image = ImageIO.read(new URL(url));  
+        if (image != null) {  
+            return true;
+        } else {
+            return false;
+        }
+    } catch (MalformedURLException e) {  
+        return false;
+    } catch (IOException e) {  
+        return false;
+    }
+}  
+   
+   public void activarDesactivarFecha() {
+       // Metodo que activa y desactiva el campo de la fecha
+       if (leido.isSelected()) {
+            fecha.setDisable(false);
+       } else {
+           fecha.setDisable(true);
+       }
+   }
+   
+   public void escribirISBN() {
+       // Método que escucha cada vez que se pulsa una tecla en el campo de isbn y comprueba si está vacio o no
+       if (isbn.getText().isEmpty()){
+           isbnEs = false;
+       } else {
+           isbnEs = true;
+       }
+
+       activarGuardar();
+   }
+   
+   public void escribirTitulo() {
+       // Método que escucha cada vez que se pulsa una tecla en el capo de titulo y comprueba si está vacío o no
+       if (titulo.getText().isEmpty()) {
+           tituloEs = false;
+       } else {
+           tituloEs = true;
+       }
+       
+       activarGuardar();
+   }
+   
+   public void escribirAutor() {
+        // Método que escucha cada vez que se pulsa una tecla en el capo de autor y comprueba si está vacío o no
+        if(autor.getText().isEmpty()) {
+            autorEs = false;
+        } else {
+             autorEs = true;
+        }
+      
+       activarGuardar();
+   }
+   
+   public void escribirPaginas() {
+        // Método que escucha cada vez que se pulsa una tecla en el capo de páginas y comprueba si está vacío o no
+        if(paginas.getText().isEmpty()) {
+            paginasEs = false;
+        } else {
+            paginasEs = true;
+        }
+       
+       activarGuardar();
+   }
+   
+   public void escribirSinopsis() {
+       // Método que escucha cada vez que se pulsa una tecla en el capo de sinópsis y comprueba si está vacío o no
+       if(sinopsis.getText().isEmpty()) {
+           sinopsisEs = false;
+       } else {
+           sinopsisEs = true;
+       }
+       
+       activarGuardar();
+   }
+   
+   public void escribirPortada() {
+       // Método que escucha cada vez que se pulsa una tecla en el capo de portada y comprueba si está vacío o no
+       if(portada.getText().isEmpty()) {
+           portadaEs = false;
+       } else {
+            portadaEs = true;
+       }
+      
+       activarGuardar();
+   }
+   
+   public void activarGuardar() {
+       // Método que comprueba si todos los campos están escritos para así activar o desactivar el botón de guardar la información
+       
+       if ((isbnEs == true) && (tituloEs == true) && (autorEs == true) && (paginasEs == true) && (sinopsisEs == true) && (portadaEs == true)) {
+           guardar.setDisable(false);
+       } else {
+           guardar.setDisable(true);
+       }
+   }   
+   
+   
    @Override
    public void initialize(URL location, ResourceBundle resources) {
        
@@ -289,6 +420,7 @@ public class ControladorFormularioLibro implements Initializable {
        editar.setDisable(true);
        eliminar.setDisable(true);
        fecha.setDisable(true);
+       guardar.setDisable(true);
      
        // Bloquear valores no numericos en el campo del isbn
        isbn.textProperty().addListener(new ChangeListener<String>() {
