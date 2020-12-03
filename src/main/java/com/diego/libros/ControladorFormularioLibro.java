@@ -20,6 +20,7 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,7 +30,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Spinner;
@@ -40,11 +43,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
+import javafx.stage.StageStyle;
 import javax.imageio.ImageIO;
 
 /**
@@ -93,7 +92,7 @@ public class ControladorFormularioLibro implements Initializable {
     Spinner spinner;
     // Géneros ordenados alfabéticamente de forma inversa para que aparezcan en orden en el spinner
     ObservableList<String> generos = FXCollections.observableArrayList("Terror", "Realista", "Policíaco", "Infantil", "Filosofía", "Fantasía", "Drama", "Distópico", "Ciencia ficción", "Aventuras");
-    SpinnerValueFactory<String> factoria = new SpinnerValueFactory.ListSpinnerValueFactory<String>(generos);
+    SpinnerValueFactory<String> factoria = new SpinnerValueFactory.ListSpinnerValueFactory<>(generos);
     
     @FXML
     TableView<Libro> tablaLibros;
@@ -109,63 +108,55 @@ public class ControladorFormularioLibro implements Initializable {
     
    public void guardar(){
          // Método que guarda la información introducida en los campos
-         Libro libro = new Libro();
-         libro.setId(id);
-         libro.setIsbn(Long.parseLong(isbn.getText()));
-         libro.setTitulo(titulo.getText());
-         libro.setAutor(autor.getText());
-         libro.setPaginas(Integer.parseInt(paginas.getText()));
-         libro.setSinopsis(sinopsis.getText());
-         libro.setGenero(spinner.getValue().toString());
-         libro.setPortada(portada.getText());
-         libro.setLeido(leido.isSelected());
-         if(fecha.getValue() == null) { 
-             libro.setFecha(date);    
-         } else {
-             libro.setFecha(fecha.getValue());
-         }
-  
-         libroDao.guardarOActualizar(libro);
-         id=0;
-       
-         cargarLibrosDeLaBase();
-       
-        isbn.clear();
-        titulo.clear();
-        autor.clear();
-        paginas.clear();
-        sinopsis.clear();
-        portada.clear();
-        leido.setSelected(false);
-        fecha.setValue(null);
-        factoria.setValue("Aventuras");
-        imagen.setImage(null);
-        
-        fecha.setDisable(true);
-        
-        editar.setDisable(true);
-        eliminar.setDisable(true);
-        guardar.setDisable(true);
-        
-        // Poner todos los campos como vacios de nuevo
-       isbnEs = false;
-       tituloEs = false;
-       autorEs = false;
-       paginasEs = false;
-       sinopsisEs = false;
-       portadaEs = false;
+         
+         // Lanzar popup de confirmación
+         Alert popupGuardar = lanzarPopup("Guardar", "La información se va a guardar en la base de datos ¿Estás seguro?");
+         
+         Optional<ButtonType> result = popupGuardar.showAndWait();
+         
+         if (result.get() == ButtonType.CANCEL) {
+           cancelar();
+       } else {
+             
+             Libro libro = new Libro();
+             libro.setId(id);
+             libro.setIsbn(Long.parseLong(isbn.getText()));
+             libro.setTitulo(titulo.getText());
+             libro.setAutor(autor.getText());
+             libro.setPaginas(Integer.parseInt(paginas.getText()));
+             libro.setSinopsis(sinopsis.getText());
+             libro.setGenero(spinner.getValue().toString());
+             libro.setPortada(portada.getText());
+             libro.setLeido(leido.isSelected());
+             if(fecha.getValue() == null) { 
+                 libro.setFecha(date);    
+             } else {
+                 libro.setFecha(fecha.getValue());
+             }
 
+             libroDao.guardarOActualizar(libro);
+             id=0;
+       
+             cargarLibrosDeLaBase();
+       
+             limpiarCampos();
+        
+             fecha.setDisable(true);
+        
+             editar.setDisable(true);
+             eliminar.setDisable(true);
+             guardar.setDisable(true);
+        
+             // Poner todos los campos como vacios de nuevo
+             camposBooleanosVacios();
+         }
+         
    } 
    
    public void editar() {
        // Método que habilita la posibilidad de editar los elementos cargados en visualizar()
-       isbn.setDisable(false);
-       titulo.setDisable(false);
-       autor.setDisable(false);
-       paginas.setDisable(false);
-       this.spinner.setDisable(false);
-       sinopsis.setDisable(false);
-       leido.setDisable(false);
+       
+       habilitarCampos();
        
        if (leido.isSelected()) {
            fecha.setDisable(false);
@@ -178,48 +169,19 @@ public class ControladorFormularioLibro implements Initializable {
        editar.setDisable(true);
        
        // Poner todos los campos como rellenados
-       isbnEs = true;
-       tituloEs = true;
-       autorEs = true;
-       paginasEs = true;
-       sinopsisEs = true;
-       portadaEs = true;
-       
-       
+       camposBooleanosLlenos();
+           
    }
    
    public void cancelar() {
        // Método que limpia todos los campos sin realizar cambios en la base de datos
-       isbn.setDisable(false);
-       titulo.setDisable(false);
-       autor.setDisable(false);
-       paginas.setDisable(false);
-       this.spinner.setDisable(false);
-       sinopsis.setDisable(false);
-       leido.setDisable(false);
-       fecha.setDisable(true);
-       portada.setDisable(false);
-       
-       isbn.clear();
-       titulo.clear();
-       autor.clear();
-       paginas.clear();
-       sinopsis.clear();
-       portada.clear();
-       leido.setSelected(false);
-       fecha.setValue(null);
-       factoria.setValue("Aventuras");
-       imagen.setImage(null);
+       habilitarCampos();     
+       limpiarCampos();
        
        id = 0;
        
         // Poner todos los campos como vacios de nuevo
-       isbnEs = false;
-       tituloEs = false;
-       autorEs = false;
-       paginasEs = false;
-       sinopsisEs = false;
-       portadaEs = false;
+        camposBooleanosVacios();
        
        guardar.setDisable(true); 
        editar.setDisable(true);
@@ -264,8 +226,7 @@ public class ControladorFormularioLibro implements Initializable {
        }
        
        imagen.setImage(img);
-       
-       
+  
        guardar.setDisable(true);
        editar.setDisable(false);
        eliminar.setDisable(false);
@@ -273,13 +234,58 @@ public class ControladorFormularioLibro implements Initializable {
    }
    
    public void eliminar() {
-      // Método para elminar un libro de la base de datos
+       // Método para elminar un libro de la base de datos
        Libro libro = tablaLibros.getSelectionModel().getSelectedItem();
-       libroDao.eliminar(libro);
-       cargarLibrosDeLaBase();
+       // Crear el popup
        
-       id = 0;
+       Alert popupEliminar = lanzarPopup("Eliminar", "¿Está seguro que quiere eliminar el libro?");
        
+       Optional<ButtonType> result = popupEliminar.showAndWait();
+       if (result.get() == ButtonType.CANCEL) {
+           cancelar();
+       } else {
+           
+            libroDao.eliminar(libro);
+            cargarLibrosDeLaBase();
+       
+             id = 0;
+       
+             limpiarCampos();
+             
+             guardar.setDisable(true);
+             editar.setDisable(true);
+             eliminar.setDisable(true);
+       
+            habilitarCampos();
+       
+       }
+  
+   }
+   
+   public void camposBooleanosLlenos() {
+       // Método que pone las variables booleanas de los campos como llenas
+       isbnEs = true;
+       tituloEs = true;
+       autorEs = true;
+       paginasEs = true;
+       sinopsisEs = true;
+       portadaEs = true;
+       
+   }
+   
+   public void camposBooleanosVacios() {
+       // Método que pone las variables booleanas de los campos como vacías
+       isbnEs = false;
+       tituloEs = false;
+       autorEs = false;
+       paginasEs = false;
+       sinopsisEs = false;
+       portadaEs = false;
+       
+   }
+   
+   public void limpiarCampos() {
+       // Método para limpiar los TextField
        isbn.clear();
        titulo.clear();
        autor.clear();
@@ -290,11 +296,10 @@ public class ControladorFormularioLibro implements Initializable {
        fecha.setValue(null);
        factoria.setValue("Aventuras");
        imagen.setImage(null);
-       
-       guardar.setDisable(true);
-       editar.setDisable(true);
-       eliminar.setDisable(true);
-       
+   }
+   
+   public void habilitarCampos() {
+       // Método que deshabilita los TextField
        isbn.setDisable(false);
        titulo.setDisable(false);
        autor.setDisable(false);
@@ -304,7 +309,19 @@ public class ControladorFormularioLibro implements Initializable {
        leido.setDisable(false);
        fecha.setDisable(true);
        portada.setDisable(false);
-       
+             
+   }
+   
+   public Alert lanzarPopup(String titulo, String contenido) {
+       // Método para crear un popup con los string recibidos y devolverlo 
+       Alert popup = new Alert(Alert.AlertType.CONFIRMATION);
+       popup.setTitle(titulo);
+       popup.setHeaderText(null);
+       popup.setContentText(contenido);
+       popup.initStyle(StageStyle.UTILITY);
+
+        return popup;
+            
    }
    
   public Boolean testImagen(String url) {  

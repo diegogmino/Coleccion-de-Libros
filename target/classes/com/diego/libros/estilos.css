@@ -8,8 +8,6 @@ and open the template in the editor.
     Author     : diego 
 */
 
-
-
 .root {
     -fx-base: #3f474f;
     -fx-accent: #FFE3D0 ;
@@ -18,7 +16,6 @@ and open the template in the editor.
     -fx-faint-focus-color: #efefef22;
 
 }
-
 
 .button{
     -fx-background-color: transparent;
@@ -31,18 +28,12 @@ and open the template in the editor.
     -fx-color: -fx-hover-base;
 }
 
-
 .table-row-cell:odd {
     -fx-base: #747474;
     -fx-accent: #FFE3D0 ;
 }
 
-.toolbar{
-     -fx-base: #000000;
+ToolBar{
+     -fx-base: #353535;
+     -fx-background-radius:10px;
 }
-
-
-
-
-
-
