@@ -6,24 +6,14 @@
 package com.diego.libros;
 
 
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -43,6 +33,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javax.imageio.ImageIO;
 
@@ -114,10 +105,7 @@ public class ControladorFormularioLibro implements Initializable {
          
          Optional<ButtonType> result = popupGuardar.showAndWait();
          
-         if (result.get() == ButtonType.CANCEL) {
-           cancelar();
-       } else {
-             
+         if (result.get() == ButtonType.OK) {
              Libro libro = new Libro();
              libro.setId(id);
              libro.setIsbn(Long.parseLong(isbn.getText()));
@@ -149,7 +137,7 @@ public class ControladorFormularioLibro implements Initializable {
         
              // Poner todos los campos como vacios de nuevo
              camposBooleanosVacios();
-         }
+       } 
          
    } 
    
@@ -175,17 +163,26 @@ public class ControladorFormularioLibro implements Initializable {
    
    public void cancelar() {
        // Método que limpia todos los campos sin realizar cambios en la base de datos
-       habilitarCampos();     
-       limpiarCampos();
        
-       id = 0;
+        Alert popupCancelar = lanzarPopup("Cancelar", "La información no se guardará ¿Estás seguro?");
+         
+         Optional<ButtonType> result = popupCancelar.showAndWait();
+         
+         if (result.get() == ButtonType.OK) {
+           habilitarCampos();     
+           limpiarCampos();
        
-        // Poner todos los campos como vacios de nuevo
-        camposBooleanosVacios();
+            id = 0;
        
-       guardar.setDisable(true); 
-       editar.setDisable(true);
-       eliminar.setDisable(true);
+            // Poner todos los campos como vacios de nuevo
+            camposBooleanosVacios();
+       
+            guardar.setDisable(true); 
+            editar.setDisable(true);
+            eliminar.setDisable(true);
+       } 
+       
+       
    }
    
    public void visualizar() {
@@ -238,13 +235,10 @@ public class ControladorFormularioLibro implements Initializable {
        Libro libro = tablaLibros.getSelectionModel().getSelectedItem();
        // Crear el popup
        
-       Alert popupEliminar = lanzarPopup("Eliminar", "¿Está seguro que quiere eliminar el libro?");
+       Alert popupEliminar = lanzarPopup("Eliminar", "La información del libro se eliminará ¿Estás seguro?");
        
        Optional<ButtonType> result = popupEliminar.showAndWait();
-       if (result.get() == ButtonType.CANCEL) {
-           cancelar();
-       } else {
-           
+       if (result.get() == ButtonType.OK) {
             libroDao.eliminar(libro);
             cargarLibrosDeLaBase();
        
@@ -257,7 +251,6 @@ public class ControladorFormularioLibro implements Initializable {
              eliminar.setDisable(true);
        
             habilitarCampos();
-       
        }
   
    }
@@ -318,8 +311,10 @@ public class ControladorFormularioLibro implements Initializable {
        popup.setTitle(titulo);
        popup.setHeaderText(null);
        popup.setContentText(contenido);
-       popup.initStyle(StageStyle.UTILITY);
-
+       popup.initStyle(StageStyle.DECORATED); 
+       Stage stage = (Stage) popup.getDialogPane().getScene().getWindow();
+       stage.getIcons().add(new Image("/img/libro.png"));
+       
         return popup;
             
    }
