@@ -5,7 +5,6 @@
  */
 package com.diego.libros;
 
-import java.awt.Toolkit;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

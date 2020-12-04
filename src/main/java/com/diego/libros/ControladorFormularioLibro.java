@@ -25,6 +25,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TableColumn;
@@ -314,6 +315,11 @@ public class ControladorFormularioLibro implements Initializable {
        popup.initStyle(StageStyle.DECORATED); 
        Stage stage = (Stage) popup.getDialogPane().getScene().getWindow();
        stage.getIcons().add(new Image("/img/libro.png"));
+       
+       DialogPane dialogPane = popup.getDialogPane();
+        dialogPane.getStylesheets().add(
+        getClass().getResource("popup.css").toExternalForm());
+        dialogPane.getStyleClass().add("popup");
        
         return popup;
             
