@@ -165,7 +165,7 @@ public class ControladorFormularioLibro implements Initializable {
    public void cancelar() {
        // Método que limpia todos los campos sin realizar cambios en la base de datos
        
-        Alert popupCancelar = lanzarPopup("Cancelar", "La información no se guardará ¿Estás seguro?");
+        Alert popupCancelar = lanzarPopup("Cancelar", "Los cambios no se guardará ¿Estás seguro?");
          
          Optional<ButtonType> result = popupCancelar.showAndWait();
          
@@ -217,7 +217,7 @@ public class ControladorFormularioLibro implements Initializable {
        
        id =libro.getId();
 
-       Image img =  new Image("https://vignette.wikia.nocookie.net/fiver/images/b/b3/Portada_no_disponible.png/revision/latest?cb=20180818105945&path-prefix=es");
+       Image img =  new Image("/img/portada_no_disponible.png");
        
        if (testImagen(portada.getText())) {
             img = new  Image(portada.getText());
@@ -329,11 +329,7 @@ public class ControladorFormularioLibro implements Initializable {
       // Método que comprueba si la url de una imagen es válida
     try {  
         BufferedImage image = ImageIO.read(new URL(url));  
-        if (image != null) {  
-            return true;
-        } else {
-            return false;
-        }
+        return image != null;
     } catch (MalformedURLException e) {  
         return false;
     } catch (IOException e) {  
@@ -351,67 +347,43 @@ public class ControladorFormularioLibro implements Initializable {
    }
    
    public void escribirISBN() {
-       // Método que escucha cada vez que se pulsa una tecla en el campo de isbn y comprueba si está vacio o no
-       if (isbn.getText().isEmpty()){
-           isbnEs = false;
-       } else {
-           isbnEs = true;
-       }
+        // Método que escucha cada vez que se pulsa una tecla en el campo de isbn y comprueba si está vacio o no
+        isbnEs = !isbn.getText().isEmpty();
 
        activarGuardar();
    }
    
    public void escribirTitulo() {
-       // Método que escucha cada vez que se pulsa una tecla en el capo de titulo y comprueba si está vacío o no
-       if (titulo.getText().isEmpty()) {
-           tituloEs = false;
-       } else {
-           tituloEs = true;
-       }
+        // Método que escucha cada vez que se pulsa una tecla en el capo de titulo y comprueba si está vacío o no
+        tituloEs = !titulo.getText().isEmpty();
        
        activarGuardar();
    }
    
    public void escribirAutor() {
         // Método que escucha cada vez que se pulsa una tecla en el capo de autor y comprueba si está vacío o no
-        if(autor.getText().isEmpty()) {
-            autorEs = false;
-        } else {
-             autorEs = true;
-        }
+        autorEs = !autor.getText().isEmpty();
       
        activarGuardar();
    }
    
    public void escribirPaginas() {
         // Método que escucha cada vez que se pulsa una tecla en el capo de páginas y comprueba si está vacío o no
-        if(paginas.getText().isEmpty()) {
-            paginasEs = false;
-        } else {
-            paginasEs = true;
-        }
+        paginasEs = !paginas.getText().isEmpty();
        
        activarGuardar();
    }
    
    public void escribirSinopsis() {
-       // Método que escucha cada vez que se pulsa una tecla en el capo de sinópsis y comprueba si está vacío o no
-       if(sinopsis.getText().isEmpty()) {
-           sinopsisEs = false;
-       } else {
-           sinopsisEs = true;
-       }
+        // Método que escucha cada vez que se pulsa una tecla en el capo de sinópsis y comprueba si está vacío o no
+        sinopsisEs = !sinopsis.getText().isEmpty();
        
        activarGuardar();
    }
    
    public void escribirPortada() {
-       // Método que escucha cada vez que se pulsa una tecla en el capo de portada y comprueba si está vacío o no
-       if(portada.getText().isEmpty()) {
-           portadaEs = false;
-       } else {
-            portadaEs = true;
-       }
+        // Método que escucha cada vez que se pulsa una tecla en el capo de portada y comprueba si está vacío o no
+        portadaEs = !portada.getText().isEmpty();
       
        activarGuardar();
    }
