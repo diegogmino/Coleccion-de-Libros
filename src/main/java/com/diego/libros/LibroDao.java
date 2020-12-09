@@ -19,9 +19,12 @@ import java.util.List;
  */
 public class LibroDao {
     
-     public static final String URL_CONEXION = "jdbc:h2:./libros";
+    public static final String URL_CONEXION = "jdbc:h2:./libros";
     public static final String USUARIO_BDD = "root";
     public static final String PASSWORD_BDD = "";
+    public static final int PORTADAMAX = 1000;
+    public static final int ISBNMAX = 13;
+    public static final int PAGINASMAX = 4;
     
      public LibroDao() {
         crearTablasSiNoExiste();
@@ -33,9 +36,9 @@ public class LibroDao {
            String sentencia = "CREATE TABLE IF NOT EXISTS libro "
                    + "(id INTEGER auto_increment, "
                    + "isbn LONG, "
-                   + "titulo VARCHAR(255), "
-                   + "autor VARCHAR(255),"
-                   + "paginas INTEGER,"
+                   + "titulo VARCHAR(500), "
+                   + "autor VARCHAR(500),"
+                   + "paginas INTEGER(4),"
                    + "genero VARCHAR(255),"
                    + "sinopsis VARCHAR(500),"
                    + "leido BOOLEAN,"
@@ -72,7 +75,7 @@ public class LibroDao {
             String sql = "UPDATE libro set isbn =" + libro.getIsbn() + ",titulo='" + libro.getTitulo()+ 
                     "', autor='" + libro.getAutor() + "', paginas='" + libro.getPaginas() + "',genero='"+ libro.getGenero() + "',sinopsis='" + libro.getSinopsis()+ "', leido=" + libro.isLeido() + ",fecha='" + libro.getFecha() + "',portada='" + libro.getPortada() + "' WHERE id=" + libro.getId();
             statement.executeUpdate(sql);
-        } catch (Exception e) {
+        } catch (Exception e) {         
             throw new RuntimeException("Ocurrió un error al actualizar la información del libro: " + e.getMessage());
         }
     }
@@ -98,7 +101,7 @@ public class LibroDao {
                   listaLibros.add(libro);
               }
           } catch (Exception e) {
-            throw new RuntimeException("Ocurrió un error al consultar la lista de libros: " + e.getMessage());
+              throw new RuntimeException("Ocurrió un error al consultar la lista de libros: " + e.getMessage());
         }
           return listaLibros;
     }
@@ -110,9 +113,44 @@ public class LibroDao {
               String sql = "DELETE FROM libro WHERE id=" + libro.getId();
               statement.executeUpdate(sql);
           } catch (Exception e) {
-            throw new RuntimeException("Ocurrió un error al eliminar el libro: " + e.getMessage());
-        }  
+              throw new RuntimeException("Ocurrió un error al eliminar el libro: " + e.getMessage());
+        }   
+    }
+    
+    public int totalLibros () {
         
+        int numeroLibros = 0;
+        
+         try (Connection conexionDB = DriverManager.getConnection(URL_CONEXION, USUARIO_BDD, PASSWORD_BDD)) {
+              Statement statement = conexionDB.createStatement();
+              String sql = "SELECT *  FROM libro";
+              ResultSet resultSet = statement.executeQuery(sql);
+              
+              while(resultSet.next()) {
+                  numeroLibros++;
+              }
+          } catch (Exception e) {
+              throw new RuntimeException("Ocurrió un error al buscar los libros: " + e.getMessage());
+        }  
+        return numeroLibros;
+    }
+    
+    public int librosLeidos () {
+        
+        int numeroLibrosLeidos = 0;
+        
+         try (Connection conexionDB = DriverManager.getConnection(URL_CONEXION, USUARIO_BDD, PASSWORD_BDD)) {
+              Statement statement = conexionDB.createStatement();
+              String sql = "SELECT *  FROM libro WHERE leido=true";
+              ResultSet resultSet = statement.executeQuery(sql);
+              
+              while(resultSet.next()) {
+                  numeroLibrosLeidos++;
+              }
+          } catch (Exception e) {
+              throw new RuntimeException("Ocurrió un error al buscar los libros: " + e.getMessage());
+        }  
+        return numeroLibrosLeidos;
     }
 
 }

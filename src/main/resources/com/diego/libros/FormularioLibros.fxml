@@ -43,7 +43,7 @@
             <Insets bottom="10" left="10" right="10" top="10" />
         </padding>
           
-          <Label text="ISBN-10" GridPane.rowIndex="1">
+          <Label text="ISBN-13" GridPane.rowIndex="1">
             <GridPane.margin>
                <Insets bottom="10.0" right="10.0" />
             </GridPane.margin></Label>
@@ -118,9 +118,21 @@
                <Insets bottom="10.0" left="10.0" />
             </GridPane.margin>
          </DatePicker>
+         <Label text="Libros en la colección" GridPane.rowIndex="7">
+            <GridPane.margin>
+               <Insets bottom="10.0" top="5.0" />
+            </GridPane.margin>
+         </Label>
+         <TextField fx:id="totalLibros" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="25.0" prefWidth="40.0" GridPane.columnIndex="1" GridPane.rowIndex="7">
+            <GridPane.margin>
+               <Insets bottom="10.0" top="5.0" />
+            </GridPane.margin>
+         </TextField>
+         <Label text="Libros leidos" GridPane.rowIndex="8" />
+         <TextField fx:id="librosLeidos" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="25.0" prefWidth="40.0" GridPane.columnIndex="1" GridPane.rowIndex="8" />
          <columnConstraints>
-            <ColumnConstraints />
-            <ColumnConstraints />
+            <ColumnConstraints maxWidth="124.0" minWidth="119.0" prefWidth="124.0" />
+            <ColumnConstraints maxWidth="195.0" minWidth="190.0" prefWidth="190.0" />
             <ColumnConstraints />
             <ColumnConstraints />
          </columnConstraints>
@@ -132,22 +144,22 @@
             <RowConstraints />
             <RowConstraints />
             <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
          </rowConstraints>
-         
+        
                  
     </GridPane>
-      <ImageView fx:id="imagen" fitHeight="179.0" fitWidth="334.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+      <ImageView fx:id="imagen" fitHeight="238.0" fitWidth="334.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
          <GridPane.margin>
-            <Insets right="100.0" />
-         </GridPane.margin></ImageView>
-      
-    
-</GridPane>    
+            <Insets right="50.0" />
+         </GridPane.margin></ImageView>   
+    </GridPane>    
     
     <StackPane HBox.hgrow="ALWAYS">
-        <TableView fx:id="tablaLibros" onMouseClicked="#visualizar">
+        <TableView fx:id="tablaLibros" onMouseClicked="#visualizar" StackPane.alignment="CENTER">
             <columns>
-                <TableColumn text="ISBN">
+                <TableColumn text="ISBN-13">
                     <cellValueFactory>
                         <PropertyValueFactory property="isbn" />
                     </cellValueFactory>

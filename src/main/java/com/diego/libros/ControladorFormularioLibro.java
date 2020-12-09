@@ -89,62 +89,78 @@ public class ControladorFormularioLibro implements Initializable {
     @FXML
     TableView<Libro> tablaLibros;
     
+    @FXML
+     TextField totalLibros;
+    
+    @FXML
+     TextField librosLeidos;
+    
     LibroDao libroDao;
     
     int id = 0;
     // Fecha predeterminada que se le pone a un libro si no se le ha especificado una concreta
     LocalDate date = LocalDate.parse("1900-01-01");
-    // Variables que se usarán para comprobar si los campos están cubiertos
+    // Variables que se usarán para comprobar si los campos están cubiertos, inicializadas a false
     boolean isbnEs = false, tituloEs = false, autorEs = false, paginasEs = false, sinopsisEs = false, portadaEs = false;
     
     
    public void guardar(){
-         // Método que guarda la información introducida en los campos
-         
-         // Lanzar popup de confirmación
-         Alert popupGuardar = lanzarPopup("Guardar", "La información se va a guardar en la base de datos ¿Estás seguro?");
-         
-         Optional<ButtonType> result = popupGuardar.showAndWait();
-         
-         if (result.get() == ButtonType.OK) {
-             Libro libro = new Libro();
-             libro.setId(id);
-             libro.setIsbn(Long.parseLong(isbn.getText()));
-             libro.setTitulo(titulo.getText());
-             libro.setAutor(autor.getText());
-             libro.setPaginas(Integer.parseInt(paginas.getText()));
-             libro.setSinopsis(sinopsis.getText());
-             libro.setGenero(spinner.getValue().toString());
-             libro.setPortada(portada.getText());
-             libro.setLeido(leido.isSelected());
-             if(fecha.getValue() == null) { 
-                 libro.setFecha(date);    
+         // Método que guarda la información introducida en los campos  
+         if(isbn.getText().length() > LibroDao.ISBNMAX) {
+                 Alert errorISBN = lanzarPopup("Error", "ISBN-13 demasiado largo", 2);
+                 errorISBN.showAndWait();
+             } else if (portada.getText().length() > LibroDao.PORTADAMAX) {             
+                 Alert errorPortada = lanzarPopup("Error", "La URL introducida es demasiado larga", 2);
+                 errorPortada.showAndWait();         
+             } else if (paginas.getText().length() > LibroDao.PAGINASMAX) {
+                 Alert errorPaginas = lanzarPopup("Error", "Campo páginas demasiado largo", 2);
+                 errorPaginas.showAndWait();  
              } else {
-                 libro.setFecha(fecha.getValue());
-             }
-
-             libroDao.guardarOActualizar(libro);
-             id=0;
-       
-             cargarLibrosDeLaBase();
-       
-             limpiarCampos();
-        
-             fecha.setDisable(true);
-        
-             editar.setDisable(true);
-             eliminar.setDisable(true);
-             guardar.setDisable(true);
-        
-             // Poner todos los campos como vacios de nuevo
-             camposBooleanosVacios();
-       } 
+                 // Lanzar popup de confirmación
+                 Alert popupGuardar = lanzarPopup("Guardar", "La información se va a guardar en la base de datos. ¿Estás seguro?", 1);
          
-   } 
+                 Optional<ButtonType> result = popupGuardar.showAndWait();
+         
+                 if (result.get() == ButtonType.OK) {
+             
+                     Libro libro = new Libro();
+                     libro.setId(id);
+                     libro.setIsbn(Long.parseLong(isbn.getText()));
+                     libro.setTitulo(titulo.getText());
+                     libro.setAutor(autor.getText());
+                     libro.setPaginas(Integer.parseInt(paginas.getText()));
+                     libro.setSinopsis(sinopsis.getText());
+                     libro.setGenero(spinner.getValue().toString());
+                     libro.setPortada(portada.getText());
+                     libro.setLeido(leido.isSelected());
+                     
+                     if(fecha.getValue() == null) { 
+                          libro.setFecha(date);    
+                     } else {
+                          libro.setFecha(fecha.getValue());
+                     }
+
+                     libroDao.guardarOActualizar(libro);
+                     id=0;
+       
+                     cargarLibrosDeLaBase();
+                     cargarNumeroLibrosColeccion();
+       
+                     limpiarCampos();
+        
+                     fecha.setDisable(true);  
+                     editar.setDisable(true);
+                     eliminar.setDisable(true);
+                     guardar.setDisable(true);
+        
+                     // Poner todos los campos como vacios de nuevo
+                     camposBooleanosVacios();
+                } 
+             }    
+    } 
    
    public void editar() {
-       // Método que habilita la posibilidad de editar los elementos cargados en visualizar()
-       
+       // Método que habilita la posibilidad de editar los elementos cargados en visualizar()  
        habilitarCampos();
        
        if (leido.isSelected()) {
@@ -165,7 +181,7 @@ public class ControladorFormularioLibro implements Initializable {
    public void cancelar() {
        // Método que limpia todos los campos sin realizar cambios en la base de datos
        
-        Alert popupCancelar = lanzarPopup("Cancelar", "Los cambios no se guardará ¿Estás seguro?");
+         Alert popupCancelar = lanzarPopup("Cancelar", "Los cambios no se guardará. ¿Estás seguro?", 1);
          
          Optional<ButtonType> result = popupCancelar.showAndWait();
          
@@ -182,20 +198,19 @@ public class ControladorFormularioLibro implements Initializable {
             editar.setDisable(true);
             eliminar.setDisable(true);
        } 
-       
-       
+           
    }
    
    public void visualizar() {
        // Método que se activa al pulsar un elemento del TableView y lo carga
        Libro libro = tablaLibros.getSelectionModel().getSelectedItem();
-       isbn.setText(libro.getIsbn()+"");
+       isbn.setText(Long.toString(libro.getIsbn()));
        isbn.setDisable(true);
        titulo.setText(libro.getTitulo());
        titulo.setDisable(true);
        autor.setText(libro.getAutor());
        autor.setDisable(true);
-       paginas.setText( libro.getPaginas()+"");
+       paginas.setText(Integer.toString(libro.getPaginas()));
        paginas.setDisable(true);
        factoria.setValue(libro.getGenero());
        this.spinner.setValueFactory(factoria);
@@ -235,9 +250,7 @@ public class ControladorFormularioLibro implements Initializable {
        // Método para elminar un libro de la base de datos
        Libro libro = tablaLibros.getSelectionModel().getSelectedItem();
        // Crear el popup
-       
-       Alert popupEliminar = lanzarPopup("Eliminar", "La información del libro se eliminará ¿Estás seguro?");
-       
+       Alert popupEliminar = lanzarPopup("Eliminar", "La información del libro se eliminará definitivamente. ¿Estás seguro?", 1);
        Optional<ButtonType> result = popupEliminar.showAndWait();
        if (result.get() == ButtonType.OK) {
             libroDao.eliminar(libro);
@@ -246,6 +259,7 @@ public class ControladorFormularioLibro implements Initializable {
              id = 0;
        
              limpiarCampos();
+             cargarNumeroLibrosColeccion();
              
              guardar.setDisable(true);
              editar.setDisable(true);
@@ -263,8 +277,7 @@ public class ControladorFormularioLibro implements Initializable {
        autorEs = true;
        paginasEs = true;
        sinopsisEs = true;
-       portadaEs = true;
-       
+       portadaEs = true;   
    }
    
    public void camposBooleanosVacios() {
@@ -274,8 +287,7 @@ public class ControladorFormularioLibro implements Initializable {
        autorEs = false;
        paginasEs = false;
        sinopsisEs = false;
-       portadaEs = false;
-       
+       portadaEs = false;   
    }
    
    public void limpiarCampos() {
@@ -302,13 +314,18 @@ public class ControladorFormularioLibro implements Initializable {
        sinopsis.setDisable(false);
        leido.setDisable(false);
        fecha.setDisable(true);
-       portada.setDisable(false);
-             
+       portada.setDisable(false);      
    }
    
-   public Alert lanzarPopup(String titulo, String contenido) {
+   public Alert lanzarPopup(String titulo, String contenido, int tipo) {
        // Método para crear un popup con los string recibidos y devolverlo 
-       Alert popup = new Alert(Alert.AlertType.CONFIRMATION);
+       Alert popup = null;
+       if (tipo == 1) {
+           popup = new Alert(Alert.AlertType.CONFIRMATION);
+       } else if(tipo == 2) {
+           popup = new Alert(Alert.AlertType.ERROR);
+       }
+       
        popup.setTitle(titulo);
        popup.setHeaderText(null);
        popup.setContentText(contenido);
@@ -349,48 +366,41 @@ public class ControladorFormularioLibro implements Initializable {
    public void escribirISBN() {
         // Método que escucha cada vez que se pulsa una tecla en el campo de isbn y comprueba si está vacio o no
         isbnEs = !isbn.getText().isEmpty();
-
-       activarGuardar();
+        activarGuardar();
    }
    
    public void escribirTitulo() {
         // Método que escucha cada vez que se pulsa una tecla en el capo de titulo y comprueba si está vacío o no
         tituloEs = !titulo.getText().isEmpty();
-       
-       activarGuardar();
+        activarGuardar();
    }
    
    public void escribirAutor() {
         // Método que escucha cada vez que se pulsa una tecla en el capo de autor y comprueba si está vacío o no
         autorEs = !autor.getText().isEmpty();
-      
-       activarGuardar();
+        activarGuardar();
    }
    
    public void escribirPaginas() {
         // Método que escucha cada vez que se pulsa una tecla en el capo de páginas y comprueba si está vacío o no
         paginasEs = !paginas.getText().isEmpty();
-       
-       activarGuardar();
+        activarGuardar();
    }
    
    public void escribirSinopsis() {
         // Método que escucha cada vez que se pulsa una tecla en el capo de sinópsis y comprueba si está vacío o no
         sinopsisEs = !sinopsis.getText().isEmpty();
-       
-       activarGuardar();
+        activarGuardar();
    }
    
    public void escribirPortada() {
         // Método que escucha cada vez que se pulsa una tecla en el capo de portada y comprueba si está vacío o no
         portadaEs = !portada.getText().isEmpty();
-      
-       activarGuardar();
+        activarGuardar();
    }
    
    public void activarGuardar() {
        // Método que comprueba si todos los campos están escritos para así activar o desactivar el botón de guardar la información
-       
        if ((isbnEs == true) && (tituloEs == true) && (autorEs == true) && (paginasEs == true) && (sinopsisEs == true) && (portadaEs == true)) {
            guardar.setDisable(false);
        } else {
@@ -398,10 +408,9 @@ public class ControladorFormularioLibro implements Initializable {
        }
    }   
    
-   
    @Override
    public void initialize(URL location, ResourceBundle resources) {
-       
+       // Método que inicializa el programa
        libroDao = new LibroDao();
        cargarLibrosDeLaBase();
        configurarTamanioColumnas();
@@ -411,8 +420,11 @@ public class ControladorFormularioLibro implements Initializable {
        eliminar.setDisable(true);
        fecha.setDisable(true);
        guardar.setDisable(true);
+       sinopsis.setWrapText(true);
+       
+       cargarNumeroLibrosColeccion();
      
-       // Bloquear valores no numericos en el campo del isbn
+       // Bloquear valores no numericos en el campo del ISBN-13
        isbn.textProperty().addListener(new ChangeListener<String>() {
        @Override
        public void changed(ObservableValue<? extends String> observable, String oldValue, 
@@ -436,8 +448,16 @@ public class ControladorFormularioLibro implements Initializable {
        
    }
    
+   private void cargarNumeroLibrosColeccion() {
+       // Método que carga en los TextField el número de libros total de la colección y el número de libros leidos y los pone no editables
+       totalLibros.setEditable(false);
+       totalLibros.setText(Integer.toString(libroDao.totalLibros()));
+       librosLeidos.setEditable(false);
+       librosLeidos.setText(Integer.toString(libroDao.librosLeidos()));
+   }
+   
    private void cargarLibrosDeLaBase() {
-       
+       // Método que rellena la tabla con los libros de la base de datos
        ObservableList<Libro> libros = FXCollections.observableArrayList();
        List<Libro> librosEncontrados = libroDao.buscarTodos();
        libros.addAll(librosEncontrados);
@@ -447,12 +467,12 @@ public class ControladorFormularioLibro implements Initializable {
    private void configurarTamanioColumnas() {
        tablaLibros.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
        ObservableList<TableColumn<Libro, ?>> columnas = tablaLibros.getColumns();
-       columnas.get(0).setMaxWidth(1f * Integer.MAX_VALUE * 8);
+       columnas.get(0).setMaxWidth(1f * Integer.MAX_VALUE * 10);
        columnas.get(1).setMaxWidth(1f * Integer.MAX_VALUE * 20);
-       columnas.get(2).setMaxWidth(1f * Integer.MAX_VALUE * 20);
+       columnas.get(2).setMaxWidth(1f * Integer.MAX_VALUE *15);
        columnas.get(3).setMaxWidth(1f * Integer.MAX_VALUE * 5);
-       columnas.get(4).setMaxWidth(1f * Integer.MAX_VALUE * 10);
-       columnas.get(5).setMaxWidth(1f * Integer.MAX_VALUE * 37);
+       columnas.get(4).setMaxWidth(1f * Integer.MAX_VALUE * 8);
+       columnas.get(5).setMaxWidth(1f * Integer.MAX_VALUE * 43);
        
    }
    
